@@ -1,21 +1,21 @@
-import { Hourglass } from 'react-loader-spinner';
+import { ThreeDots } from 'react-loader-spinner';
 import css from './Loader.module.css';
 
-const Loader = () => {
+const LoaderMore = () => {
   return (
     <div className={css.container}>
-      <Hourglass
-        className={css.loader}
+      <ThreeDots
         visible={true}
         height="80"
         width="80"
-        ariaLabel="hourglass-loading"
+        color="#5c6297"
+        radius="9"
+        ariaLabel="three-dots-loading"
         wrapperStyle={{}}
         wrapperClass=""
-        colors={['#5c6297', '#fff']}
       />
     </div>
   );
 };
 
-export default Loader;
+export default LoaderMore;
