@@ -6,6 +6,7 @@ import css from './App.module.css';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import toast, { Toaster } from 'react-hot-toast';
+import LoadMoreBtn from '../LoadMoreBtn/LoadMoreBtn';
 
 export default function App() {
   const [images, setImages] = useState([]);
@@ -74,7 +75,7 @@ export default function App() {
       {isLoading && <Loader />}
       {error && <ErrorMessage />}
       {images.length > 0 && !isLoading && (
-        <button onClick={handleLoadMore}>Load more</button>
+        <LoadMoreBtn onClick={handleLoadMore} />
       )}
     </div>
   );
