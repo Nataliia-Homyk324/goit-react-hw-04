@@ -1,5 +1,4 @@
 import css from './LoadMoreBtn.module.css';
-import PropTypes from 'prop-types';
 
 const LoadMoreBtn = ({ onClick }) => {
   return (
@@ -9,9 +8,6 @@ const LoadMoreBtn = ({ onClick }) => {
       </button>
     </div>
   );
-};
-LoadMoreBtn.propTypes = {
-  onClick: PropTypes.func,
 };
 
 export default LoadMoreBtn;
