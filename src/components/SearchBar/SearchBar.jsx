@@ -1,10 +1,14 @@
 import { Field, Form, Formik } from 'formik';
 import css from './SearchBar.module.css';
+import toast, { Toaster } from 'react-hot-toast';
 
-const SearchBar = ({ onSubmit }) => {
+const SearchBar = ({ onSearch }) => {
   const handleSubmit = (values, actions) => {
-    const formattedSearch = values.search.trim().toLowerCase();
-    onSubmit(formattedSearch);
+    if (values.search.trim() === '') {
+      toast.error('The search field cannot be empty!');
+      return;
+    }
+    onSearch(values.search.trim().toLowerCase());
     actions.resetForm();
   };
 
@@ -24,6 +28,7 @@ const SearchBar = ({ onSubmit }) => {
             <button className={css.btnSearch} type="submit">
               Search
             </button>
+            <Toaster />
           </Form>
         </Formik>
       </header>

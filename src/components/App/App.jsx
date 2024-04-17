@@ -1,116 +1,81 @@
-import { getImagesUnplash } from '../../images-api';
 import { useEffect, useState } from 'react';
-import Modal from 'react-modal';
-
-import toast, { Toaster } from 'react-hot-toast';
-import css from './App.module.css';
-
-import SearchBar from '../SearchBar/SearchBar';
-import Loader from '../Loader/Loader';
 import ImageGallery from '../ImageGallery/ImageGallery';
-import LoadMoreBtn from '../LoadMoreBtn/LoadMoreBtn';
-import LoaderMore from '../Loader/LoaderMore';
+import SearchBar from '../SearchBar/SearchBar';
+import { fetchImages } from '../../images-api';
+import css from './App.module.css';
+import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
-import ImageModal from '../ImageModal/ImageModal';
+import toast, { Toaster } from 'react-hot-toast';
 
-function App() {
-  const [images, setImages] = useState([]); // Стан для зберігання списку зображень
-  const [page, setPage] = useState(1); // Стан для зберігання поточної сторінки результатів
-  const [totalPages, setTotalPages] = useState(1); // Стан для зберігання загальної кількості сторінок результатів
-  const [search, setSearch] = useState(''); // Стан для зберігання поточного пошукового запиту
-  const [error, setError] = useState(false); // Стан для відображення помилки
-  const [loading, setLoading] = useState(false); // Стан для відображення завантаження основного контенту
-  const [loadingMore, setLoadingMore] = useState(false); // Стан для відображення завантаження додаткового контенту
-  const [isSearching, setIsSearching] = useState(false); // Стан для відображення процесу пошуку нових зображень
-  const [selectedImage, setSelectedImage] = useState(null); // Стан для зберігання вибраного зображення для модального вікна
-  const [modalIsOpen, setModalIsOpen] = useState(false); // Стан для відображення/приховування модального вікна
+export default function App() {
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
+
+  const handleSearch = newQuery => {
+    setQuery(newQuery);
+    setPage(1);
+    setImages([]);
+  };
+
+  const handleLoadMore = () => {
+    setPage(page + 1);
+  };
 
   useEffect(() => {
-    Modal.setAppElement('#root');
-  }, []);
+    if (query === '') {
+      return;
+    }
 
-  const handleSearch = async searchQuery => {
-    try {
-      setLoading(true);
-      setIsSearching(true);
-      setImages([]);
-      setPage(1);
-      setSearch(searchQuery);
-      const dataImg = await getImagesUnplash(searchQuery, 1);
-      setTotalPages(dataImg.total_pages);
-      setImages(dataImg.results);
+    async function getImages() {
+      try {
+        setError(false);
+        setIsLoading(true);
 
-      if (searchQuery.trim() === '') {
-        toast.error('The search field cannot be empty!');
-        return;
-      } else if (!dataImg.total) {
-        toast(
-          'Sorry, we have not found the photos for your request. Try to write it differently.',
-          {
-            duration: 5000,
-          }
-        );
-      } else {
-        toast.success(`Wow! We found ${dataImg.total} pictures`);
+        const data = await fetchImages(query, page);
+
+        setImages(prevImages => {
+          return [...prevImages, ...data.results];
+        });
+
+        if (!data.total) {
+          toast(
+            'Sorry, we have not found the photos. ',
+
+            {
+              duration: 5000,
+            }
+          );
+        } else {
+          toast.success(`Wow! We found ${data.total} pictures`);
+        }
+      } catch (error) {
+        setError(true);
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-      setIsSearching(false);
     }
-  };
 
-  const handleLoadMore = async () => {
-    try {
-      setLoadingMore(true);
-      const nextPage = page + 1;
-      const dataImages = await getImagesUnplash(search, nextPage);
-      setImages(prevImages => {
-        return [...prevImages, ...dataImages.results];
-      });
-      setPage(nextPage);
-    } catch (error) {
-      setError(true);
-    } finally {
-      setLoadingMore(false);
-    }
-  };
+    getImages();
+  }, [page, query]);
 
-  const isVisible = () => {
-    return totalPages !== 0 && totalPages !== page && !loadingMore;
-  };
-
-  const openModal = image => {
-    setSelectedImage(image);
-    setModalIsOpen(true);
-  };
-  const closeModal = () => setModalIsOpen(false);
+  console.log(images);
 
   return (
-    <>
-      <SearchBar onSubmit={handleSearch} />
-      <Toaster
-        position="top-right"
-        reverseOrder={false}
-        toastOptions={{
-          className: css.toastTextCenter,
-        }}
-      />
-      {loading && <Loader />}
+    <div className={css.container}>
+      <SearchBar onSearch={handleSearch} />
+      <Toaster />
+
+      {images.length > 0 && <ImageGallery items={images} />}
+
+      {isLoading && <Loader />}
       {error && <ErrorMessage />}
-      <ImageGallery imageList={images} openModal={openModal} />
-      {!loadingMore && !isSearching && (
-        <LoadMoreBtn onClick={handleLoadMore} isVisible={isVisible} />
+      {images.length > 0 && !isLoading && (
+        <button onClick={handleLoadMore}>Load more</button>
       )}
-      {loadingMore && <LoaderMore />}
-      <ImageModal
-        isOpen={modalIsOpen}
-        image={selectedImage}
-        onCloseModal={closeModal}
-      />
-    </>
+    </div>
   );
 }
-
-export default App;
